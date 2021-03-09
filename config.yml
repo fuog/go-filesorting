@@ -1,0 +1,22 @@
+
+---
+basics:
+  # log directly to console
+  logToStdout: true
+  # only relevant if logToStdout is false
+  logFile: ./logfile.log
+
+  # Main Hotfolder that is used
+  inputFolder: ./in/
+  # the correct filename that is lookd for
+  filterdFiles: ".*\\.pdf$"
+  # the target folder where to sort files to
+  outputfolder: ./out
+
+  cleanInputFolder:
+    # should wrong filenames be sorted out (to another Directory)
+    sortOut: true
+    # where should wrong files be placed?
+    sortOutFolder: /tmp/notused
+    # should there be exceptions to the sorting out pattern?
+    sortOutException: "config\\.yml$"
