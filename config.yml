@@ -3,6 +3,8 @@
 basics:
   # log directly to console
   logToStdout: true
+  # set loglevel debug|info|warn|fatal
+  logLevel: debug
   # only relevant if logToStdout is false
   logFile: ./logfile.log
 
