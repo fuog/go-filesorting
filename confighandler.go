@@ -65,7 +65,7 @@ basics:
   logFile: ./logfile.log
 
   # Main Hotfolder that is used
-  inputFolder: ./in/
+  inputFolder: ./in
   # the correct filename that is lookd for
   filterdFiles: ".*\\.pdf$"
   # the target folder where to sort files to
