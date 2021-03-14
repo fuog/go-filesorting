@@ -62,7 +62,8 @@ func init() {
 func main() {
 	fmt.Println("---file read---------")
 
-	go FilePathWalker(Conf.Basics.InputFolder, &Q)
+	// start a goroutine for the filepathwalker
+	go FilePathWalker(Conf.Basics.InputFolder, &Q, time.Duration(1E+9*Conf.Basics.ScanInterval))
 
 	for {
 		time.Sleep(5 * time.Second)

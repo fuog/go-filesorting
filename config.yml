@@ -10,6 +10,8 @@ basics:
 
   # Main Hotfolder that is used
   inputFolder: ./in
+  # scanning interval in seconds
+  scanInterval: 10
   # the correct filename that is lookd for
   filterdFiles: ".*\\.pdf$"
   # the target folder where to sort files to

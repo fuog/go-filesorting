@@ -96,16 +96,18 @@ func (q *FileQueue) remove(f File) error {
 }
 
 // FilePathWalker is starts a loop that scanns the folder for files and tries to add them to the queue
-func FilePathWalker(inputFolder string, q *FileQueue) error {
+func FilePathWalker(inputFolder string, q *FileQueue, interval time.Duration) error {
 	for {
+		// beware the embedded func that will do stuff
 		filepath.Walk(inputFolder, func(path string, info os.FileInfo, err error) error {
 			// this is a loop of all files found
-			// ignore unix hidden files
-			// TODO: Windows works difrent
+
+			// this will skip anthing files in subdirectories
 			if info.IsDir() && path != inputFolder {
 				return filepath.SkipDir
 			}
-
+			// ignore folders and unix hidden files
+			// TODO: Windows-hidden files work difrently
 			if !info.IsDir() && !strings.HasPrefix(info.Name(), ".") {
 				// this is a file we want to use
 				// log.Debugln("found a file: " + info.Name())
@@ -125,6 +127,8 @@ func FilePathWalker(inputFolder string, q *FileQueue) error {
 
 			return nil
 		})
+
+		// the scanning frequency
 		time.Sleep(2 * time.Second)
 	}
 }

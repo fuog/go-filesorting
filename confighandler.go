@@ -16,6 +16,7 @@ type config struct {
 		LogLevel         string `mapstructure:",logLevel"`
 		LogFile          string `mapstructure:",logFile"`
 		InputFolder      string `mapstructure:",inputFolder"`
+		ScanInterval     int64  `mapstructure:",scanInterval"`
 		FilterdFiles     string `mapstructure:",filterdFiles"`
 		Outputfolder     string `mapstructure:",outputfolder"`
 		CleanInputFolder struct {
@@ -66,6 +67,8 @@ basics:
 
   # Main Hotfolder that is used
   inputFolder: ./in
+  # scanning interval in seconds
+  scanInterval: 2
   # the correct filename that is lookd for
   filterdFiles: ".*\\.pdf$"
   # the target folder where to sort files to
