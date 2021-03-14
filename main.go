@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -12,7 +13,7 @@ var (
 	// Conf Create a new config instance.
 	Conf config
 
-	Queue FileQueue
+	Q FileQueue
 
 	configPath *string
 	logPath    *string
@@ -60,10 +61,21 @@ func init() {
 
 func main() {
 	fmt.Println("---file read---------")
-	FilePathWalkDir(Conf.Basics.InputFolder, &Queue)
-	fmt.Println(Queue.list())
 
-	fmt.Println("------------")
+	go FilePathWalker(Conf.Basics.InputFolder, &Q)
+
+	for {
+		time.Sleep(5 * time.Second)
+		f, err := Q.get()
+		fmt.Println("get", f, err)
+		time.Sleep(5 * time.Second)
+		if f != nil {
+			err2 := Q.remove(*f)
+			fmt.Println("remove", err2)
+		}
+		fmt.Println("------------")
+
+	}
 
 	//var value int
 	//for {
