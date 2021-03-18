@@ -1,134 +1,74 @@
 package main
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
+	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/c2h5oh/datasize"
+	"github.com/ledongthuc/pdf"
 	log "github.com/sirupsen/logrus"
 )
 
 // File for the worker
 type File struct {
-	Name    string
-	Path    string
-	Size    datasize.ByteSize
-	ModTime time.Time
-	Locked  bool
+	Name        string
+	Path        string
+	Size        datasize.ByteSize
+	ModTime     time.Time
+	Locked      bool
+	ContentType string
+	ContentPDF  string
 }
 
-// FileQueue list of files with methods
-type FileQueue struct {
-	files []File
+func (f *File) GetFileContentType() error {
+	// try to open the file
+	openFile, err := os.Open(f.Path)
+	if err != nil {
+		log.Errorln("could not open file: ", err)
+		return err
+	}
+	// remember to close file
+	defer openFile.Close()
+
+	// Only the first 512 bytes are used to sniff the content type.
+	buffer := make([]byte, 512)
+
+	_, err = openFile.Read(buffer)
+	if err != nil {
+		log.Errorln("could not read file: ", err)
+		return err
+	}
+
+	// Use the net/http package's handy DectectContentType function. Always returns a valid
+	// content-type by returning "application/octet-stream" if no others seemed to match.
+	f.ContentType = http.DetectContentType(buffer)
+
+	return nil
 }
 
-// check if the FileQueue is Empty
-func (q *FileQueue) empty() bool {
-	if len(q.files) > 0 {
-		return false
+func (f *File) ReadPdf() error {
+
+	// make sure the file is not to big
+	if f.Size.MBytes() > 10.0 {
+		return errors.New("to big to read as PFD")
 	}
-	return true
-}
 
-// add file to filequeue
-// TODO: missing errorhandling
-func (q *FileQueue) add(f File) {
-	// empty check if the queue is empty
-	if q.empty() {
-		q.files = append(q.files, f)
-		log.Infoln("added", f.Name, "to FileQueue")
-		return
+	openFile, r, err := pdf.Open(f.Path)
+	// remember to close file
+	defer openFile.Close()
+
+	if err != nil {
+		return err
 	}
-	// stopped here ! Want to add file is NOT in queue
-	for _, entry := range q.files {
-		if entry.Path == f.Path {
-			// log.Debugln("skipping", f.Name, " file already in queue")
-			return
-		}
+	var buf bytes.Buffer
+	b, err := r.GetPlainText()
+	if err != nil {
+		return err
 	}
-	q.files = append(q.files, f)
-	log.Infoln("added", f.Name, "to FileQueue")
-	return
-}
-
-// list creates a simple list of files in string format for easy debuging
-func (q *FileQueue) list() string {
-
-	list := "List of all entries:"
-	for _, entry := range q.files {
-		list = list + "\n" + entry.Name
-	}
-	return list
-}
-
-// get gets the first not locked file from the FileQueue and locks it before handing over
-func (q *FileQueue) get() (*File, error) {
-	if q.empty() {
-		return nil, errors.New("Error: queue empty")
-	}
-	for i := range q.files {
-		if !q.files[i].Locked {
-			q.files[i].Locked = true
-			var f File
-			f = q.files[i]
-			return &f, nil
-		}
-	}
-	return nil, errors.New("Error: All file in list are locked")
-}
-
-func (q *FileQueue) remove(f File) error {
-
-	for i := range q.files {
-		if q.files[i] == f {
-			fmt.Println("matching!", f)
-			// actualy removing in golang .. xD
-			q.files = append(q.files[:i], q.files[i+1:]...)
-			return nil
-		}
-	}
-	return errors.New("Error: No FileQueue entrie matches this file!")
-
-}
-
-// FilePathWalker is starts a loop that scanns the folder for files and tries to add them to the queue
-func FilePathWalker(inputFolder string, q *FileQueue, interval time.Duration) error {
-	for {
-		// beware the embedded func that will do stuff
-		filepath.Walk(inputFolder, func(path string, info os.FileInfo, err error) error {
-			// this is a loop of all files found
-
-			// this will skip anthing files in subdirectories
-			if info.IsDir() && path != inputFolder {
-				return filepath.SkipDir
-			}
-			// ignore folders and unix hidden files
-			// TODO: Windows-hidden files work difrently
-			if !info.IsDir() && !strings.HasPrefix(info.Name(), ".") {
-				// this is a file we want to use
-				// log.Debugln("found a file: " + info.Name())
-				s := datasize.ByteSize(info.Size())
-				// create new File Object
-				f := File{
-					Name:    info.Name(),
-					Path:    path,
-					Size:    s,
-					ModTime: info.ModTime(),
-					Locked:  false,
-				}
-				// add to file Queue
-				q.add(f)
-
-			}
-
-			return nil
-		})
-
-		// the scanning frequency
-		time.Sleep(2 * time.Second)
-	}
+	buf.ReadFrom(b)
+	f.ContentPDF = buf.String()
+	return nil
 }
