@@ -11,20 +11,41 @@ import (
 
 // config struct of the entire config
 type config struct {
+
+	// everything very basic
 	Basics struct {
-		LogToStdout      bool   `mapstructure:",logToStdout"`
-		LogLevel         string `mapstructure:",logLevel"`
-		LogFile          string `mapstructure:",logFile"`
-		InputFolder      string `mapstructure:",inputFolder"`
-		ScanInterval     int64  `mapstructure:",scanInterval"`
-		FilterdFiles     string `mapstructure:",filterdFiles"`
-		Outputfolder     string `mapstructure:",outputfolder"`
-		CleanInputFolder struct {
-			SortOut          bool   `mapstructure:",SortOut"`
-			SortOutFolder    string `mapstructure:",sortOutFolder"`
-			SortOutException string `mapstructure:",sortOutException"`
+		// enable stdout
+		LogToStdout bool `mapstructure:",logToStdout"`
+		// Mode [debug/info/warn/error]
+		LogLevel string `mapstructure:",logLevel"`
+		// path
+		LogFile string `mapstructure:",logFile"`
+	}
+	// everything about handling files
+	FileHandling struct {
+		// path
+		InputFolder string `mapstructure:",inputFolder"`
+		// intervall in seconds
+		ScanInterval int64 `mapstructure:",scanInterval"`
+		// path
+		SortOutFolder string `mapstructure:",sortOutFolder"`
+		// regexp
+		IgnoredFileNames string `mapstructure:",ignoredFileNames"`
+
+		// everything about identifying PDF files
+		FileTypePDF struct {
+			ContentTypeFilter string `mapstructure:",contentTypeFilter"`
+			FileNameFilter    string `mapstructure:",fileNameFilter"`
 		}
 	}
+	// List of all tags-filters
+	Tagging []taggingConf
+}
+
+type taggingConf struct {
+	Tag              string   `mapstructure:",tag"`
+	SearchExpression string   `mapstructure:",searchExpression"`
+	AdditionalTags   []string `mapstructure:",additionalTags"`
 }
 
 func getConf(C *config) {
@@ -55,8 +76,7 @@ func getConf(C *config) {
 
 func restoreConf() {
 	// template to use if no config is present
-	templateString := `
----
+	templateString := `---
 basics:
   # log directly to console
   logToStdout: true
@@ -65,22 +85,31 @@ basics:
   # only relevant if logToStdout is false
   logFile: ./logfile.log
 
+fileHandling:
   # Main Hotfolder that is used
   inputFolder: ./in
   # scanning interval in seconds
-  scanInterval: 2
-  # the correct filename that is lookd for
-  filterdFiles: ".*\\.pdf$"
-  # the target folder where to sort files to
-  outputfolder: ./out
+  scanInterval: 10
+  # where should wrong files be placed?
+  sortOutFolder: /tmp/notused
+  # should there be exceptions to the sorting out pattern?
+  ignoredFileNames: "config\\.yml$"
 
-  cleanInputFolder:
-    # should wrong filenames be sorted out (to another Directory)
-    sortOut: true
-    # where should wrong files be placed?
-    sortOutFolder: /tmp/notused
-    # should there be exceptions to the sorting out pattern?
-    sortOutException: "config\\.yml$"
+  # passible fileTypes
+  fileTypePDF:
+	contentTypeFilter: application/pdf
+	fileNameFilter: ".*\\.pdf$"
+
+# List can be extendet at will but with th (correct types!)
+tagging:
+  - tag: swisscom
+	searchExpression: "swisscom"
+	additionaltags:
+	  - isp
+  - tag: cablecom
+	searchExpression: "cablecom"
+	additionaltags:
+	  - isp
 `
 	templateBytes := []byte(templateString)
 	err := ioutil.WriteFile("./config.yml", templateBytes, 0660)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -61,7 +60,7 @@ func (q *FileQueue) list() string {
 // get gets the first not locked file from the FileQueue and locks it before handing over
 func (q *FileQueue) get() (*File, error) {
 	if q.empty() {
-		return nil, errors.New("Error: queue empty")
+		return nil, errors.New("error: queue empty")
 	}
 	for i := range q.files {
 		if !q.files[i].Locked {
@@ -71,20 +70,20 @@ func (q *FileQueue) get() (*File, error) {
 			return &f, nil
 		}
 	}
-	return nil, errors.New("Error: All file in list are locked")
+	return nil, errors.New("error: All file in list are locked")
 }
 
 func (q *FileQueue) remove(f File) error {
 
 	for i := range q.files {
 		if q.files[i].Path == f.Path {
-			fmt.Println("matching!", f)
+			// TODO: some logging
 			// actualy removing in golang .. xD
 			q.files = append(q.files[:i], q.files[i+1:]...)
 			return nil
 		}
 	}
-	return errors.New("Error: No FileQueue entrie matches this file!")
+	return errors.New("error: No eilequeue entrie matches this file")
 }
 
 // == F I L E P A T H W A L K E R ===============

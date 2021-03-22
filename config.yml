@@ -1,4 +1,3 @@
-
 ---
 basics:
   # log directly to console
@@ -8,19 +7,28 @@ basics:
   # only relevant if logToStdout is false
   logFile: ./logfile.log
 
+fileHandling:
   # Main Hotfolder that is used
   inputFolder: ./in
   # scanning interval in seconds
   scanInterval: 10
-  # the correct filename that is lookd for
-  filterdFiles: ".*\\.pdf$"
-  # the target folder where to sort files to
-  outputfolder: ./out
+  # where should wrong files be placed?
+  sortOutFolder: /tmp/notused
+  # should there be exceptions to the sorting out pattern?
+  ignoredFileNames: "config\\.yml$"
 
-  cleanInputFolder:
-    # should wrong filenames be sorted out (to another Directory)
-    sortOut: true
-    # where should wrong files be placed?
-    sortOutFolder: /tmp/notused
-    # should there be exceptions to the sorting out pattern?
-    sortOutException: "config\\.yml$"
+  # passible fileTypes
+  fileTypePDF:
+    contentTypeFilter: "^application\\/pdf$"
+    fileNameFilter: ".*\\.pdf$"
+
+# List can be extendet at will but with th (correct types!)
+tagging:
+  - tag: swisscom
+    searchExpression: "Dispaly"
+    additionaltags:
+      - isp
+  - tag: cablecom
+    searchExpression: "cablecom"
+    additionaltags:
+      - isp
