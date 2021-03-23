@@ -2,7 +2,7 @@
 
 The idea behind this program is to sort PDF (and later maybe oder file types) with self defined tags. These tags are matched mostly with regular expressions against the content, filename, meta information and other factors that will depend on der file type.
 
-This is my first project writen in GoLang and i'm realy looking for to any feedback that helps me to writ better code.
+This is my first project writen in GoLang and i'm realy looking for any feedback that helps me to writ better code.
 
 I was inspired by the "synOCR" and wanted to wirte somthing that can be used with a Synology or other simple file structure and does not have the tesseract as a core part of the program.
 
